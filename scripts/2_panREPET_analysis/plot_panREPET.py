@@ -13,139 +13,154 @@ from matplotlib import pyplot
 from collections import Counter
 import ast
 #import pyclusterprofiler
-import pyupset as pyu
+#import pyupset as pyu
 import statistics
 from itertools import combinations
 import matplotlib.patches as mpatches
 
 import goatools
 from goatools.obo_parser import GODag
-from goatools.base import download_go_basic_obo
-from goatools.go_enrichment import GOEnrichmentStudy
-#help(GOEnrichmentStudy)
-from goatools import obo_parser
+# from goatools.base import download_go_basic_obo
+# from goatools.go_enrichment import GOEnrichmentStudy
+# #help(GOEnrichmentStudy)
+# from goatools import obo_parser
 
 from Bio import SeqIO
 from Bio.SeqRecord import SeqRecord
 import random
-import gffutils
+# import gffutils
 
 
 #--------#
 # Inputs #
 #--------#
-work_dir = "/mnt/Volume_Somia/Malus_PLEASURE_ANR"
-dir_pop_structure = "results_Anthony_Malus_5ass_TE_structure"
-dir_non_pop_structure = "results_Anthony_Malus_5ass_TE_residuals_11March2025"
-f_pop_structure = f"{work_dir}/panREPET/{dir_pop_structure}/clique/filter80/cliques_copy_filter80.tsv.500"
-f_non_pop_structure = f"{work_dir}/panREPET/{dir_non_pop_structure}/clique/filter80/cliques_copy_filter80.tsv.500"
+work_dir = "../../output"
 
-f_unique_popStruc = f"{work_dir}/panREPET/{dir_pop_structure}/uniqueCopies/filter80/concat_uniqueCopies_filter80.tsv.500"
-f_unique_nonpopStruc = f"{work_dir}/panREPET/{dir_non_pop_structure}/uniqueCopies/filter80/concat_uniqueCopies_filter80.tsv.500"
+#from panTEannot
+dir_panTEannot_pop_structure = f"{work_dir}/panTEannot_5_Malus_TE_structure/"
+dir_panTEannot_non_pop_structure = f"{work_dir}/panTEannot_5_Malus_TE_residuals/"
 
-dir_panTEannot = f"{work_dir}/panTEannot/workflow/{dir_pop_structure}/"
-dir_panTEannot = f"{work_dir}/panTEannot/workflow/{dir_non_pop_structure}/"
+#from panREPET
+dir_pop_structure = "panREPET_Malus_5accs_structure_95"
+dir_non_pop_structure = "panREPET_Malus_5accs_residuals_95"
+f_pop_structure = f"{work_dir}/{dir_pop_structure}/clique/filter80/cliques_copy_filter80.tsv"
+f_non_pop_structure = f"{work_dir}/{dir_non_pop_structure}/clique/filter80/cliques_copy_filter80.tsv"
 
-f_TElibrary_popStruc = f"{work_dir}/data_Anthony/TE_structure.txt" #TEs_pop_structure.txt"
-f_TElibrary_nonpopStruc = f"{work_dir}/data_Anthony/TE_residuals_11March2025.txt" #TEs_non_pop_structure.txt"
+f_unique_popStruc = f"{work_dir}/{dir_pop_structure}/uniqueCopies/filter80/concat_uniqueCopies_filter80.tsv"
+f_unique_nonpopStruc = f"{work_dir}/{dir_non_pop_structure}/uniqueCopies/filter80/concat_uniqueCopies_filter80.tsv"
+
+f_TElibrary_popStruc = "../../data/TElists/250923_TE_structure.txt"
+f_TElibrary_nonpopStruc = "../../data/TElists/250923_TE_residuals.txt"
 
 # Aurélie
-f_genes = "/mnt/Volume_Somia/Malus_PLEASURE_ANR/data_Anthony/genes/concat.emapper.decorated.gff"
-f_genes_Mdo = "/mnt/Volume_Somia/Malus_PLEASURE_ANR/data_Anthony/genes/Mdo.emapper.decorated.gff.gene"
-f_GOs = "/mnt/Volume_Somia/Malus_PLEASURE_ANR/data_Anthony/genes/concat.emapper.annotations"
+f_genes = "../../data/genes/concat.emapper.decorated.reformatChr.gff" # sed -E 's/Chr/chr/g; s/chr0+([0-9])/\1/g' concat.emapper.decorated.gff > concat.emapper.decorated.reformatChr.gff
+#f_genes_Mdo = "/mnt/Volume_Somia/Malus_PLEASURE_ANR/data_Anthony/genes/Mdo.emapper.decorated.gff.gene"
+f_GOs = "../../data/genes/concat.emapper.annotations.reformatChr" # sed -E 's/Chr([0-9]+)/chr\1/g; s/chr0+([0-9])([^0-9])?/chr\1\2/g' concat.emapper.annotations > concat.emapper.annotations.reformatChr
 
 #Xilong
-f_genes_Xilong = "/mnt/Volume_Somia/Malus_PLEASURE_ANR/data_Anthony/gene_models_20170612.gene.sort.01.flank2k.bed"
-f_genes_Xilong_info = "/mnt/Volume_Somia/Malus_PLEASURE_ANR/data_Anthony/Mdomestica_491_v1.1.annotation_info.txt"
-f_genes_Xilong_floraison = "/mnt/Volume_Somia/Malus_PLEASURE_ANR/data_Anthony/flowering_GDDH_florid.txt"
-f_genes_GDDH13 = "/mnt/Volume_Somia/Malus_PLEASURE_ANR/data_Anthony/gene_models_20170612.gff3.gene"
-f_positive_genes = "/mnt/Volume_Somia/Malus_PLEASURE_ANR/data_Anthony/positive_gene_table.bed" # on M.domestica/GDDH13_1-1 genomes
-f_balancing_genes = "/mnt/Volume_Somia/Malus_PLEASURE_ANR/data_Anthony/balancing_gene_table.bed" # on M.domestica/GDDH13_1-1 genomes
+# f_genes_Xilong = "/mnt/Volume_Somia/Malus_PLEASURE_ANR/data_Anthony/gene_models_20170612.gene.sort.01.flank2k.bed"
+# f_genes_Xilong_info = "/mnt/Volume_Somia/Malus_PLEASURE_ANR/data_Anthony/Mdomestica_491_v1.1.annotation_info.txt"
+# f_genes_Xilong_floraison = "/mnt/Volume_Somia/Malus_PLEASURE_ANR/data_Anthony/flowering_GDDH_florid.txt"
+#f_genes_GDDH13 = "../../gene_models_20170612.gff3.gene" #From Neo /data/atipe-workspace/xchen/assembly_GDDH13_v1_1
+# f_positive_genes = "/mnt/Volume_Somia/Malus_PLEASURE_ANR/data_Anthony/positive_gene_table.bed" # on M.domestica/GDDH13_1-1 genomes
+# f_balancing_genes = "/mnt/Volume_Somia/Malus_PLEASURE_ANR/data_Anthony/balancing_gene_table.bed" # on M.domestica/GDDH13_1-1 genomes
 
 # color dictionnaries
 d_order = {'LTR': 'blue', 'TIR': 'pink', 'noCat': 'white', 'LINE': 'yellow', 'SINE': 'orange', 'pararetrovirus': 'black', 'Helitron': 'red'}
 d_order_color = {
-	'LINE': 'red',
-	'LTR_Other': 'orange',
-	'LTR_Copia': 'green',
-	'LTR_Gypsy': 'blue',
-	'TIR': 'purple',
-	'noCat': 'grey'
+	'LINE': 'yellow', #'#f2e914',
+	'LTR_Other': 'orange', #'#faa11c',
+	'LTR_Copia': 'lightgreen',
+	'LTR_Gypsy': 'lightblue',
+	'TIR': 'orchid', #'purple',
+	'noCat': 'lightgrey',
+	'Helitron': 'pink', #update
+	'MITE': 'blueviolet', #update
+	#'SINE': 'olive', #update
+	'SSR': 'brown', #update
+	'pararetrovirus': 'cyan', #update
 }
 
 d_gene_color = {
 	'1. No genes at 2000 bp on either side of the TE': 'grey',
-	'2. Response to stimulus': 'red',
+	'4. Response to stimulus': 'red',
 	'3. No response to stimulus': 'green',
-	'4. GO unavailable': 'blue'
+	'2. GO unavailable': 'lightblue'
 }
 d_ass_names_old = {"M.domestica": "MdoGDDH", "M.sieversii":"MsiKAZ", "M.sylvestris":"MsyGERA", "M.orientalis":"MorLC", "MdoR106A": "MdoR106A"}
 d_ass_names = {"M.domestica": "Mdo", "M.sieversii":"Msie", "M.sylvestris":"Msyl", "M.orientalis":"Mori", "MdoR106A": "MdoR"}
-d_species_color = {"green" : "Wild", "red": "Domesticated", "black": "Both", "gold": "Shared by all"}
+d_species_color = {"green" : "Wild", "red": "Domesticated", "black": "Both", "brown": "Shared by all"}
 d_species_color2 = {"3. GDDH13-specific": "green", "4. Rootstock-specific": "green", "3. M.sieversii":"green", "4. M.sylvestris":"green", "5. M.orientalis":"green", "1. Wild-specific": "red", "2. Domesticated-specific": "green"}
 d_species_shape = {"3. GDDH13-specific": '<', "4. Rootstock-specific": '>', "3. M.sieversii": 'X', "4. M.sylvestris": 's', "5. M.orientalis": 'o',  "1. Wild-specific": "^", "2. Domesticated-specific": "v"}
 
-dir_panTEannot_pop_structure = f"{work_dir}/panTEannot/workflow/{dir_pop_structure}/"
-dir_panTEannot_non_pop_structure = f"{work_dir}/panTEannot/workflow/{dir_non_pop_structure}/"
 
-f_all_TEs_pop = "/mnt/Volume_Somia/Malus_PLEASURE_ANR/panTEannot/workflow/results_Anthony_Malus_5ass_TE_structure/M.domestica/run_blaster-S0.align.clean_match.path.total.out.coordchr.merged.bed"
-f_all_TEs_non_pop = "/mnt/Volume_Somia/Malus_PLEASURE_ANR/panTEannot/workflow/results_Anthony_Malus_5ass_TE_residuals_11March2025/M.domestica/run_blaster-S0.align.clean_match.path.total.out.coordchr.merged.bed"
-genome_GDDH13_pop = "/mnt/Volume_Somia/Malus_PLEASURE_ANR/panTEannot/workflow/results_Anthony_Malus_5ass_TE_structure/M.domestica/M.domestica.fa.formated"
-genome_GDDH13_non_pop = "/mnt/Volume_Somia/Malus_PLEASURE_ANR/panTEannot/workflow/results_Anthony_Malus_5ass_TE_residuals_11March2025/M.domestica/M.domestica.fa.formated"
+# f_all_TEs_pop = "/mnt/Volume_Somia/Malus_PLEASURE_ANR/panTEannot/workflow/results_Anthony_Malus_5ass_TE_structure/M.domestica/run_blaster-S0.align.clean_match.path.total.out.coordchr.merged.bed"
+# f_all_TEs_non_pop = "/mnt/Volume_Somia/Malus_PLEASURE_ANR/panTEannot/workflow/results_Anthony_Malus_5ass_TE_residuals_11March2025/M.domestica/run_blaster-S0.align.clean_match.path.total.out.coordchr.merged.bed"
+# genome_GDDH13_pop = "/mnt/Volume_Somia/Malus_PLEASURE_ANR/panTEannot/workflow/results_Anthony_Malus_5ass_TE_structure/M.domestica/M.domestica.fa.formated"
+# genome_GDDH13_non_pop = "/mnt/Volume_Somia/Malus_PLEASURE_ANR/panTEannot/workflow/results_Anthony_Malus_5ass_TE_residuals_11March2025/M.domestica/M.domestica.fa.formated"
 
 
 # consensus with high TE copies
-f_highCopiesCount = "/mnt/Volume_Somia/Malus_PLEASURE_ANR/data_Anthony/highCopiesCount.tsv"
+# f_highCopiesCount = "/mnt/Volume_Somia/Malus_PLEASURE_ANR/data_Anthony/highCopiesCount.tsv"
 
 #PASTEC classif
-f_classif = "/mnt/Volume_Somia/Malus_PLEASURE_ANR/data_Anthony/Database_pourContig.xlsx"
+# f_classif = "/mnt/Volume_Somia/Malus_PLEASURE_ANR/data_Anthony/Database_pourContig.xlsx"
 
-f_genes_GDDH13_flowering = "genes_GDDH13_flowering.tsv"
+# f_genes_GDDH13_flowering = "genes_GDDH13_flowering.tsv"
 
 
 #---------#
 # Outputs #
 #---------#
-outdir = "output"
+outdir = "../../output"
 
-
-
+if not os.path.exists("../../output/TE_structure"):
+    os.mkdir("../../output/TE_structure")
+if not os.path.exists("../../output/TE_residuals"):
+    os.mkdir("../../output/TE_residuals")
 
 
 
 
 
 def reformat( f, f_unique, dir_panTEannot, extension ):
+    
+    df = pd.read_csv(f, sep="\t")
+    df = df.rename(columns={"id": "TE insertions"})
+    
+    out_file = f"../../output/{extension}/panREPET_identities_{extension}.tsv"
+    
+    #if os.path.exists(out_file):
+    get_identity( df, dir_panTEannot, extension )
+    
+    df_identity = pd.read_csv(out_file, sep="\t")
+    #print(f"df before merging with copy-consensus identity:\n{df}")
+    df_identity = df_identity[["accession", "copy_name", "identity"]]
+    df_identity = df_identity.drop_duplicates(subset=["accession", "copy_name"])
+    df = df.merge(df_identity , on=["accession", "copy_name"], how="left")
+    #print(f"df after merging with copy-consensus identity:\n{df}")
+    
+    df_unique = pd.read_csv( f_unique, sep="\t", names=['chromosome', 'tool', 'type', 'start', 'end', 'length', 'strand', '.', 'features', 'accession'] )
+    df_unique['clique_size'] = 1
+    df_unique.insert(0, 'TE insertions', range(1, 1 + len(df_unique)))
+    df_unique['TE insertions'] = df_unique['TE insertions'].astype(str) + '_unique'
+    df_unique['copy_name'] = df_unique['features'].apply(lambda x: x.split(';')[0].split('=')[1] + '_' + x.split(';')[1].split('=')[1])
+    df_unique['consensus'] = df_unique['copy_name'].apply(lambda x: x.replace(x.split('_')[0] + '_', ''))
+    df_unique['identity'] = df_unique['features'].apply(lambda x: x.split('identity:')[1]).astype('float')
+    df_unique = df_unique[["TE insertions", "accession", "chromosome", "start", "end", "copy_name", "consensus", "clique_size", "identity"]]
+    
+    df = pd.concat([df, df_unique])
+    
+    #df["order"] = df["consensus"].str.split("_").str[2]
+    df["order"] = df["consensus"].str.split("_").apply(lambda x: "_".join(x[2:4]) if len(x) > 3 else x[2])
+    df["order"] = df["order"].replace("LTR", "LTR_Other")
+    
+    df["length"] = df["end"] - df["start"]
 
-	df = pd.read_csv(f, sep="\t")
-	df = df.rename(columns={"id": "TE insertions"})
+    out_file_concatUniques = f"../../output/{extension}/panREPET_identities_{extension}_concatUniques.tsv"
+    df.to_csv(out_file_concatUniques, sep="\t")
 
-	#get_identity( df, dir_panTEannot, extension )
-	df_identity = pd.read_csv(f"panREPET_identities_{extension}.tsv", sep="\t")
-	#print(f"df before merging with copy-consensus identity:\n{df}")
-	df_identity = df_identity[["accession", "copy_name", "identity"]]
-	df_identity = df_identity.drop_duplicates(subset=["accession", "copy_name"])
-	df = df.merge(df_identity , on=["accession", "copy_name"], how="left")
-	#print(f"df after merging with copy-consensus identity:\n{df}")
-
-	df_unique = pd.read_csv( f_unique, sep="\t", names=['chromosome', 'tool', 'type', 'start', 'end', 'length', 'strand', '.', 'features', 'accession'] )
-	df_unique['clique_size'] = 1
-	df_unique.insert(0, 'TE insertions', range(1, 1 + len(df_unique)))
-	df_unique['TE insertions'] = df_unique['TE insertions'].astype(str) + '_unique'
-	df_unique['copy_name'] = df_unique['features'].apply(lambda x: x.split(';')[0].split('=')[1] + '_' + x.split(';')[1].split('=')[1])
-	df_unique['consensus'] = df_unique['copy_name'].apply(lambda x: x.replace(x.split('_')[0] + '_', ''))
-	df_unique['identity'] = df_unique['features'].apply(lambda x: x.split('identity:')[1]).astype('float')
-	df_unique = df_unique[["TE insertions", "accession", "chromosome", "start", "end", "copy_name", "consensus", "clique_size", "identity"]]
-
-	df = pd.concat([df, df_unique])
-
-	#df["order"] = df["consensus"].str.split("_").str[2]
-	df["order"] = df["consensus"].str.split("_").apply(lambda x: "_".join(x[2:4]) if len(x) > 3 else x[2])
-	df["order"] = df["order"].replace("LTR", "LTR_Other")
-
-	df["length"] = df["end"] - df["start"]
-
-	return df
+    return df
 
 
 
@@ -166,7 +181,7 @@ def get_identity( df, dir_panTEannot, extension ):
 
 			print(ass)
 
-			ass_bed = f"{dir_panTEannot}{ass}/run_blaster-S0.align.clean_match.path.total.out.coordchr.merged.bed"
+			ass_bed = f"{dir_panTEannot}{ass}/run_blaster-S1.align.clean_match.path.total.out.coordchr.merged.bed"
 
 			df_ass = pd.read_csv(ass_bed, sep="\t", names = cols_bed)
 			df_ass = df_ass[["copy_name", "identity"]]
@@ -178,7 +193,7 @@ def get_identity( df, dir_panTEannot, extension ):
 
 
 	df = df.merge(df_asss, on=["accession", "copy_name"], how="left")
-	df.to_csv(f"panREPET_identities_{extension}.tsv", sep="\t", index=False)
+	df.to_csv(f"../../output/{extension}/panREPET_identities_{extension}.tsv", sep="\t", index=False)
 
 
 
@@ -336,11 +351,11 @@ def piechart_panCompVSTEfamily( df, f_TElibrary, axes, nrow, sub_title ):
 
 def determine_color(intersection,sets):
 
-	if set(intersection) == {'MdoR106A', 'M.domestica', 'M.sieversii', 'M.orientalis', 'M.sylvestris'}:
-		return 'gold'
-	elif set(intersection).issubset({'M.domestica','MdoR106A'}):
+	if set(intersection) == {"Mdo", "Msie", "Msyl", "Mori", "MdoR"}: # {'MdoR106A', 'M.domestica', 'M.sieversii', 'M.orientalis', 'M.sylvestris'}:
+		return 'brown'
+	elif set(intersection).issubset({'Mdo','MdoR'}):
 		return 'red'
-	elif set(intersection).issubset({'M.sieversii', 'M.orientalis', 'M.sylvestris'}):
+	elif set(intersection).issubset({'Msie', 'Mori', 'Msyl'}):
 		return 'green'
 	elif set(intersection) == set(sets): 
 		return 'black'
@@ -379,7 +394,7 @@ def format_chromosome( chrom, accession ):
 
 def get_bedfile( df_panREPET, outDir ):
 
-	df_panREPET['chromosome'] = df_panREPET.apply(lambda row: format_chromosome(row['chromosome'], row['accession']), axis=1)
+	#df_panREPET['chromosome'] = df_panREPET.apply(lambda row: format_chromosome(row['chromosome'], row['accession']), axis=1)
 
 	df_panREPET = df_panREPET[["chromosome", "start", "end", "TE insertions", "accession", "copy_name", "consensus", "clique_size", "order"]]
 	df_panREPET.to_csv(f"{outDir}/panREPET.bed", sep="\t", index=False, header=False)
@@ -393,11 +408,9 @@ def intersect_against_genes( f_TEs, f_genes, windows ):
 
 	# Bedtools window
 	f_output_bedtools = f_TEs + ".intersectVSgenes"
-	cmd = f"bedtools window -b {f_genes} -a {f_TEs} -w {windows} > {f_output_bedtools}" # -wo  -nonamecheck
+	cmd = f"ml all && ml gencore/3 && ml bedtools/2.31.1 && bedtools window -b {f_genes} -a {f_TEs} -w {windows} > {f_output_bedtools}" # -wo  -nonamecheck
 	print(cmd)
 	subprocess.call(cmd, shell=True)
-
-
 
 
 
@@ -406,7 +419,9 @@ def parse_TEvsgenes( f_intersection, d_ass_names ):
 
 	#chr0    36939635        36946744        1       M.domestica     112826_TE_003334_LTR_Copia      TE_003334_LTR_Copia     3       chr0    Helixer exon    36935551        36940185        .       +       .       ID=Malus_chr0_003853.1.exon.1;Parent=Malus_chr0_003853.1;Assembly_name=MdoFUJ1  550
 	#chr6    12106010        12113067        1       M.sylvestris    361993_TE_003334_LTR_Copia      TE_003334_LTR_Copia     3       chr6    Helixer three_prime_UTR 12112942        12113267        .       -       .       ID=Malus_chr6_001395.1.three_prime_UTR.1;Parent=Malus_chr6_001395.1;Assembly_name=MdoHAN
-
+    #update
+    # chr4    12219623        12221000        1       Mdo     181816_TE_103530_LTR    TE_103530_LTR   2       LTR_Other
+    # chr4    11958227        11959602        1       MdoR    263215_TE_103530_LTR    TE_103530_LTR   2       LTR_Other
 
 	header = "#chr\tstart\tend\tclique_id\taccession\tcopy_name\tconsensus\tclique_size\torder\tchr_gene\tsource_gene\ttype_gene\tstart_gene\tend_gene\tscore_gene\tstrand_gene\tphase_gene\tfeatures_gene\n"
 
@@ -417,7 +432,7 @@ def parse_TEvsgenes( f_intersection, d_ass_names ):
 			cutting = line.strip().split('\t')
 
 			#TE
-			assName_TE = d_ass_names[cutting[4]]
+			assName_TE = cutting[4] #d_ass_names[cutting[4]] --> torm
 			length_TE = abs(int(cutting[2]) - int(cutting[1]))
 			chr_TE = cutting[0]
 
@@ -440,26 +455,28 @@ def parse_TEvsgenes( f_intersection, d_ass_names ):
 
 def merge_GO( f_intersection ):
 
-	df = pd.read_csv( f_intersection, sep="\t" )
-	df["query"] = df["features_gene"].str.split(";Assembly_name").str[0].str.replace("ID=", "")
-	df["Assembly_name"] = df["accession"].map(d_ass_names) #df["features_gene"].str.split("Assembly_name;").str[1]
-	df['inGene'] = (df['start'] >= df['start_gene']) & (df['end'] <= df['end_gene'])
-	#print(df)
-
-	df_GO =  pd.read_csv( f_GOs, sep="\t" )
-	df_GO["query"] = df_GO["query"].str.split(".").str[0]
-	#df_GO = df_GO[["query", "Assembly_name", "GOs", "Description"]]
-	#print(df_GO)
-
-	df_merged = df.merge(df_GO, on=["query", "Assembly_name"])
-	#print(df_merged)
-	output = f_intersection + ".GO"
-	df_merged.to_csv(output, sep="\t", index=False)
-	print(f"\nMerge with GO {output}")
-
-
-
-
+    print('\n\n\n******************* Start - Merge GO:\n')
+    
+    df = pd.read_csv( f_intersection, sep="\t" )
+    df["query"] = df["features_gene"].str.split(";Assembly_name").str[0].str.replace("ID=", "")
+    df["Assembly_name"] = df["accession"] #.map(d_ass_names) #df["features_gene"].str.split("Assembly_name;").str[1]
+    df['inGene'] = (df['start'] >= df['start_gene']) & (df['end'] <= df['end_gene'])
+    print(df)
+    
+    df_GO =  pd.read_csv( f_GOs, sep="\t" )
+    df_GO["query"] = df_GO["query"].str.split(".").str[0]
+    df_GO = df_GO[["query", "Assembly_name", "GOs", "Description"]]
+    print(df_GO)
+    
+    df_merged = df.merge(df_GO, on=["query", "Assembly_name"])
+    #print(df_merged)
+    output = f_intersection + ".GO"
+    df_merged.to_csv(output, sep="\t", index=False)
+    print(f"\nMerge with GO {output}")
+    
+    print('\n******************* End - Merge GO:\n\n\n')
+    
+    
 
 
 
@@ -717,9 +734,9 @@ def get_level_1_go_names( go_terms, go_dag ):
 		#print(go_terms_level0_list)
 
 	if len(go_terms_level0_list) == 0:
-		return "4. GO unavailable"
+		return "2. GO unavailable"
 	if "response to stimulus" in go_terms_level0_list:
-		return "2. Response to stimulus"
+		return "4. Response to stimulus"
 	else:
 		return "3. No response to stimulus" #str(set(go_terms_level0_list))
 
@@ -754,7 +771,7 @@ def add_genes_presence_absence( df, outDir ):
 	#clique_to_description = df_TEs_with_genes.set_index("clique_id")["GOs"].to_dict()
 	#print(df_TEs_with_genes.set_index("clique_id")["GOs"])
 	clique_to_description = df_TEs_with_genes.groupby('clique_id')['GOs'].apply(lambda x: ','.join(x)).to_dict()
-	print(clique_to_description)
+	#print(clique_to_description)
 
 	# Get the list of clique_ids that have genes around them
 	clique_ids_with_genes = df_TEs_with_genes["clique_id"].unique().tolist()
@@ -764,7 +781,7 @@ def add_genes_presence_absence( df, outDir ):
 	df["GOs"] = df["TE insertions"].map(clique_to_description).fillna("1. No genes at 2000 bp on either side of the TE")
 	#df["GOs"] = df["TE insertions"].map(clique_to_description).notna().map({True: "ok", False: "NA"})
 
-	# Charger le fichier OBO GO
+	# Load the OBO GO database: wget https://current.geneontology.org/ontology/go-basic.obo
 	go_obo_file = "go-basic.obo"
 	goDag = GODag(go_obo_file)
 
@@ -825,70 +842,178 @@ def add_gene_selection( df, outDir ):
 def upset_plot( df, ax, title ):
 
 
-	sets = ['MdoR106A', 'M.domestica', 'M.sieversii', 'M.orientalis', 'M.sylvestris']
-	df = df[["accession", "TE insertions", "identity", "genes", "order", "GOs", "level_1_go_names", "length"]]
-	print(df)
+    print("\n\n****** Start - Upset plot ... ******")
+    
+    #sets = ['MdoR106A', 'M.domestica', 'M.sieversii', 'M.orientalis', 'M.sylvestris']
+    sets = ["Mdo", "Msie", "Msyl", "Mori", "MdoR"]
+    df = df[["accession", "TE insertions", "identity", "genes", "order", "GOs", "level_1_go_names", "length"]]
+    print(df)
+    print(df[["accession", "TE insertions", "genes"]])
+    
+    #df = df[df['level_1_go_names'] != "1. No genes at 2000 bp on either side of the TE"]
+    #df = df[df['order'] == "LTR_Gypsy"]
+    
+    # Create binary table
+    df_bool = df[["accession", "TE insertions"]].pivot_table(index='TE insertions', columns='accession', aggfunc=lambda x: True).fillna(False)
+    print(df_bool)
+    
+    # merge with initial df for fetching other informations like genes presence
+    df = pd.merge(df_bool, df, on='TE insertions', how='left')
+    print(df)
+    
+    df = df.drop('accession', axis=1)
+    df = df.drop_duplicates()
+    print(df)
 
-	#df = df[df['level_1_go_names'] != "1. No genes at 2000 bp on either side of the TE"]
-	#df = df[df['order'] == "LTR_Gypsy"]
+    #cols = ['TE insertions', 'M.domestica', 'M.orientalis', 'M.sieversii', 'M.sylvestris', 'MdoR106A']
+    cols = ['TE insertions', 'Mdo', 'Mori', 'Msie', 'Msyl', 'MdoR']
+    #df = df.groupby(cols).agg(identity=('identity', 'median'), length=('length', 'median'), genes=('genes', lambda x: 1 if x.any() else 0), order=('order', 'first'), level_1_go_names=('level_1_go_names', 'first')).reset_index()
+    df = df.groupby(cols).agg(
+        order=('order', 'first'),
+        identity=('identity', 'median'),
+        length=('length', 'median'),
+        genes=('genes', lambda x: 1 if x.any() else 0),
+        level_1_go_names=('level_1_go_names', lambda x: x.dropna().iloc[0] if x.dropna().size > 0 else np.nan)
+    ).reset_index()
+    print(df)
 
-	# Create binary table
-	df_bool = df[["accession", "TE insertions"]].pivot_table(index='TE insertions', columns='accession', aggfunc=lambda x: True).fillna(False)
-	print(df_bool)
-
-	# merge with initial df for fetching other informations like genes presence
-	df = pd.merge(df_bool, df, on='TE insertions', how='left')
-	print(df)
-
-	df = df.drop('accession', axis=1)
-	df = df.drop_duplicates()
-	print(df)
-
-	cols = ['TE insertions', 'M.domestica', 'M.orientalis', 'M.sieversii', 'M.sylvestris', 'MdoR106A']
-	df = df.groupby(cols).agg(identity=('identity', 'median'), length=('length', 'median'), genes=('genes', lambda x: 1 if x.any() else 0), order=('order', 'first'), level_1_go_names=('level_1_go_names', 'first')).reset_index()
-
-	df.set_index(sets, inplace=True)
-	#print(df)
-	df.sort_index(inplace=True)
-	#print(df)
-
-
-
-	upset = UpSet(df, sort_by='cardinality', show_counts=True, include_empty_subsets=True) #show_counts='%0.2f') #show_counts='%d')
-	upset.add_stacked_bars(by='order', title="Intersection size and TE order", elements=10, colors=d_order_color)
-	upset.add_catplot(value="genes", kind="bar", color="lightblue") #strip
-	upset.add_stacked_bars(by="level_1_go_names", title="GO level 1", elements=10, colors=d_gene_color)
-	upset.add_catplot(value="identity", kind="box", color="lightblue", elements=6) #, jitter=True, dodge=True)
-	upset.add_catplot(value="length", kind="box", color="lightblue", elements=6) #, jitter=True, dodge=True)
-
-	for i in range(1, len(sets) + 1):  # Boucle sur la taille des combinaisons
-		for comb in combinations(sets, i):
-			color = determine_color(comb,sets)  # Déterminer la couleur pour l'intersection
-			upset.style_subsets(
-				present=list(comb),  # Intersection spécifique
-				facecolor=color,
-				edgecolor=color,
-				linewidth=2,
-				label=d_species_color[color]
-				#label=",".join(comb)  # Label indiquant les ensembles dans l'intersection
-	)
-
-	ax.set_title(title)
-	upset.plot()
-
-
-	fig_name = f"{outdir}/upset_plot_Anthony_{title}.png"
-	plt.savefig( fig_name, dpi=500, bbox_inches='tight', pad_inches=0.1 )
-	plt.savefig( fig_name + ".svg", dpi=600, bbox_inches='tight', format="svg" )
-	fig = plt.gcf()
-	plt.close(fig)
-	img1 = plt.imread(f'{fig_name}')
-	ax.imshow(img1)
-	ax.axis('off')
-	os.remove(fig_name)
+    df.set_index(sets, inplace=True)
+    print(df)
+    df.sort_index(inplace=True)
+    print(df)
 
 
 
+    # ===========================================================
+    # 🔹 Création du DataFrame df_orderPerc : proportion d'ordre par intersection
+    # ===========================================================
+
+    # On remet à plat le DataFrame avec les colonnes booléennes
+    df_reset = df.reset_index()
+
+    # Compter le nombre unique de TE insertions par intersection et par ordre
+    count_order = (
+        df_reset.groupby(sets + ['order'])
+                .agg(count=('TE insertions', 'nunique'))
+                .reset_index()
+    )
+    count_GO = (
+        df_reset.groupby(sets + ['level_1_go_names'])
+                .agg(count=('TE insertions', 'nunique'))
+                .reset_index()
+    )
+    
+    # Calcul du total par intersection
+    count_order['total'] = count_order.groupby(sets)['count'].transform('sum')
+    count_GO['total'] = count_GO.groupby(sets)['count'].transform('sum')
+
+    # Calcul du pourcentage (0–100)
+    count_order['order_percent'] = 100 * count_order['count'] / count_order['total']
+    count_GO['GO_percent'] = 100 * count_GO['count'] / count_GO['total']
+
+    # Renommage pour plus de clarté
+    df_orderPerc = count_order[sets + ['order', 'order_percent']].copy()
+    df_GOPerc = count_GO[sets + ['level_1_go_names', 'GO_percent']].copy()
+
+    # Optionnel : trier par intersection et ordre
+    df_orderPerc = df_orderPerc.sort_values(by=['order_percent', 'order']).reset_index(drop=True)
+    df_GOPerc = df_GOPerc.sort_values(by=['level_1_go_names']).reset_index(drop=True)
+
+    print("\n--- Aperçu de df_orderPerc ---")
+    print(df_orderPerc.head(15))
+    df_orderPerc.to_csv(f"order_percent_{title}.csv", sep=',')
+
+    # Fusion des pourcentages dans df
+    df_reset = df.reset_index()
+    df_reset = df_reset.merge(
+        df_orderPerc,
+        on=["Mdo", "Msie", "Msyl", "Mori", "MdoR", "order"],
+        how="left"
+    )
+    df_reset = df_reset.merge(
+        df_GOPerc,
+        on=["Mdo", "Msie", "Msyl", "Mori", "MdoR", "level_1_go_names"],
+        how="left"
+    )
+    df = df_reset.set_index(["Mdo", "Msie", "Msyl", "Mori", "MdoR"]).sort_index()
+    print(df)
+    #print(df.head(15))
+    df = df.sort_values(by=['level_1_go_names', 'order_percent', 'order'])
+    print(df)
+  
+  
+    upset = UpSet(df, sort_by='cardinality', show_counts=True, include_empty_subsets=True, show_percentages=False) #show_counts='%0.2f') #show_counts='%d')
+    #upset.add_stacked_bars(by="level_1_go_names", title="GO level 1", elements=10, colors=d_gene_color, sum_over="genes")
+    upset.add_catplot(
+        kind="bar",
+        value="GO_percent",
+        hue="level_1_go_names",           # pour colorer selon l’ordre TE
+        dodge=True,            # sépare les barres par couleur
+        palette=d_gene_color, # ta palette de couleurs
+        elements=8,            # taille visuelle
+        width=0.8,        # <— plus large (valeurs entre 0 et 1, par défaut 0.8)
+        linewidth=0.1,    # <— contour des barres plus visible
+        edgecolor="black" # <— optionnel : ajoute un contour noir
+    )
+    
+    #Proportion of shared TE insertions with adjacent genes (within 2 kb), an insertion considered gene-associated if one copy is near a gene in any assembly.
+    upset.add_catplot(value="genes", kind="bar", color="lightblue")
+    
+    upset.add_catplot(value="identity", kind="violin", color="lightblue", elements=6, scale="width") #, jitter=True, dodge=True)
+    upset.add_catplot(value="length", kind="violin", color="lightblue", elements=6, scale="width", cut=0) #, jitter=True, dodge=True) inner="box", 
+    #upset.add_stacked_bars(by='order', title="Intersection size and TE order", elements=10, colors=d_order_color, linewidth=0.3)#, sum_over='prop')
+    upset.add_catplot(
+        kind="bar",
+        value="order_percent",
+        hue="order",           # pour colorer selon l’ordre TE
+        dodge=True,            # sépare les barres par couleur
+        palette=d_order_color, # ta palette de couleurs
+        elements=8,            # taille visuelle
+        width=1,        # <— plus large (valeurs entre 0 et 1, par défaut 0.8)
+        linewidth=0.3,    # <— contour des barres plus visible
+        edgecolor="black" # <— optionnel : ajoute un contour noir
+    )
+
+    for i in range(1, len(sets) + 1):  # Boucle sur la taille des combinaisons
+        for comb in combinations(sets, i):
+            color = determine_color(comb,sets)  # Déterminer la couleur pour l'intersection
+            upset.style_subsets(
+                present=list(comb),  # Intersection spécifique
+                facecolor=color,
+                edgecolor=color,
+                linewidth=2,
+                label=d_species_color[color]
+                #label=",".join(comb)  # Label indiquant les ensembles dans l'intersection
+    )
+    
+    axes = upset.plot()
+    # Exemple : récupérer le subplot principal (barres d’intersection)
+    print("\n--- Clés disponibles dans axes ---")
+    print(axes.keys())#dict_keys(['matrix', 'shading', 'totals', 'intersections', 'extra1', 'extra2', 'extra3', 'extra4', 'extra5'])
+    
+    # Déplacer la légende associée
+    leg = axes['extra1'].get_legend()
+    if leg:
+        leg.set_bbox_to_anchor((1.05, 1))
+        leg.set_loc('upper left')
+    leg = axes['extra5'].get_legend()
+    if leg:
+        leg.set_bbox_to_anchor((1.05, 1))
+        leg.set_loc('upper left')
+        
+    fig_name = f"../../Figures/upset_plot_Anthony_{title}.png"
+    plt.savefig( fig_name, dpi=600, bbox_inches='tight', pad_inches=0.1 )
+    plt.savefig( fig_name + ".svg", dpi=600, bbox_inches='tight', format="svg" )
+    plt.savefig( fig_name + ".pdf", dpi=600, bbox_inches='tight', format="pdf" )
+    fig = plt.gcf()
+    plt.close(fig)
+    img1 = plt.imread(f'{fig_name}')
+    ax.imshow(img1)
+    ax.axis('off')
+    os.remove(fig_name)
+    
+    print("\n\n****** End - Upset plot ... ******")
+    
 
 
 def check_Xilong_genes( TEdir ):
@@ -1286,7 +1411,7 @@ def launch_bedtools_window( outdir, flank_size ):
 	bedtools_windows( f_genes_GDDH13, f_GDDH13_allTE, f"{outdir}/GDDH13_allTEs_intersectVSgenes.tsv", flank_size )
 
 	# GDDH13 flowering genes vs all TEs
-	bedtools_windows( f_genes_GDDH13_flowering, f_GDDH13_allTE, f"{outdir}/GDDH13_allTEs_intersectVSgenes_flowering.tsv", flank_size )
+	#bedtools_windows( f_genes_GDDH13_flowering, f_GDDH13_allTE, f"{outdir}/GDDH13_allTEs_intersectVSgenes_flowering.tsv", flank_size )
 
 
 	#-------------------------#
@@ -1296,7 +1421,7 @@ def launch_bedtools_window( outdir, flank_size ):
 	bedtools_windows( f_genes_GDDH13, f_TEs, f"{outdir}/panREPET_intersectVSgenes.tsv", flank_size )
 
 	# GDDH13 flowering genes vs panREPET TEs
-	bedtools_windows( f_genes_GDDH13_flowering, f_TEs, f"{outdir}/panREPET_intersectVSgenes_flowering.tsv", flank_size )
+	#bedtools_windows( f_genes_GDDH13_flowering, f_TEs, f"{outdir}/panREPET_intersectVSgenes_flowering.tsv", flank_size )
 
 	# GDDH13 positive genes vs panREPET TEs
 	#bedtools_windows( f_positive_genes, f_TEs, f"{outdir}/panREPET_intersectVSpositivegenes.tsv", flank_size )
@@ -1479,61 +1604,60 @@ def AME_main( df_pop_structure, df_non_pop_structure, VS, flank_size ):
 if __name__ == "__main__":
 
 
-	df_pop_structure = reformat( f_pop_structure, f_unique_popStruc, dir_panTEannot_pop_structure, "TE_core_structure" )
+	df_pop_structure = reformat( f_pop_structure, f_unique_popStruc, dir_panTEannot_pop_structure, "TE_structure" )
 	print(f"TE_pop_structure:\n{df_pop_structure}\n")
 
 	df_non_pop_structure = reformat( f_non_pop_structure, f_unique_nonpopStruc, dir_panTEannot_non_pop_structure, "TE_residuals" )
 	print(f"\nTE_residuals:\n{df_non_pop_structure}\n")
 	print(df_non_pop_structure.columns)
 
-	"""
-	df = pd.concat([df_pop_structure, df_non_pop_structure])
-	df["seq_ID"] = "::" + df["chromosome"].astype(str) + ":" + df["start"].astype(str) + "-" + df["end"].astype(str)
-	df = df[["seq_ID", "consensus", "copy_name", "TE insertions"]]
-	df_TE_highCopies = pd.read_csv( f_highCopiesCount, sep="\t" )
-	df = df.merge(df_TE_highCopies, on="consensus", how="left")
-	df.to_csv("panREPET.tsv", sep="\t", index=False)
+#------ TORM
+# 	df = pd.concat([df_pop_structure, df_non_pop_structure])
+# 	df["seq_ID"] = "::" + df["chromosome"].astype(str) + ":" + df["start"].astype(str) + "-" + df["end"].astype(str)
+# 	df = df[["seq_ID", "consensus", "copy_name", "TE insertions"]]
+# 	df_TE_highCopies = pd.read_csv( f_highCopiesCount, sep="\t" )
+# 	df = df.merge(df_TE_highCopies, on="consensus", how="left")
+# 	df.to_csv("panREPET.tsv", sep="\t", index=False)
 
+# 	df_classif = pd.read_csv(f_classif, sep="\t", names=["consensus", "length", "classif"])
+# 	print(f"\ndf_classif:\n{df_classif}\n")
+# 	df_classif["consensus"] = df_classif["consensus"].str.replace(">", "")
+# 	print(f"\ndf_classif:\n{df_classif}\n")
+# 	df_highCopiesCount = pd.read_csv(f_highCopiesCount, sep="\t")
+# 	print(df_highCopiesCount)
+# 	df_highCopiesCount = pd.merge(df_highCopiesCount, df_classif, on="consensus", how="left")
+# 	print(df_highCopiesCount)
+# 	df_highCopiesCount.to_csv(f_highCopiesCount+".classif", sep="\t", index=False)
+#------ TORM
 
-	df_classif = pd.read_csv(f_classif, sep="\t", names=["consensus", "length", "classif"])
-	print(f"\ndf_classif:\n{df_classif}\n")
-	df_classif["consensus"] = df_classif["consensus"].str.replace(">", "")
-	print(f"\ndf_classif:\n{df_classif}\n")
-	df_highCopiesCount = pd.read_csv(f_highCopiesCount, sep="\t")
-	print(df_highCopiesCount)
-	df_highCopiesCount = pd.merge(df_highCopiesCount, df_classif, on="consensus", how="left")
-	print(df_highCopiesCount)
-	df_highCopiesCount.to_csv(f_highCopiesCount+".classif", sep="\t", index=False)
-	"""
+# 	add_flowering()
+# 	add_GOs()
 
 	
-	add_flowering()
-	add_GOs()
-	
-	#--------------------------------------#
-	#       orders_per_panCompartment      #
-	#--------------------------------------#
-	orders_filename = "orders_per_panCompartment_Anthony.png"
-	if not os.path.exists( orders_filename ):
+# 	#--------------------------------------#
+# 	#       orders_per_panCompartment      #
+# 	#--------------------------------------#
+# 	orders_filename = "orders_per_panCompartment_Anthony.png"
+# 	if not os.path.exists( orders_filename ):
 
-		fig, axes = plt.subplots(nrows=2, ncols=6, figsize=(30, 15))
-		plt.subplots_adjust(wspace=0.2, hspace=0.15)
-		piechart_panCompVSTEfamily( df_pop_structure, f_TElibrary_popStruc, axes, 0, "TE-core-structure" )
-		piechart_panCompVSTEfamily( df_non_pop_structure, f_TElibrary_nonpopStruc, axes, 1, "TE-residuals" )
-		plt.savefig( orders_filename, dpi=400, bbox_inches='tight' )
+# 		fig, axes = plt.subplots(nrows=2, ncols=6, figsize=(30, 15))
+# 		plt.subplots_adjust(wspace=0.2, hspace=0.15)
+# 		piechart_panCompVSTEfamily( df_pop_structure, f_TElibrary_popStruc, axes, 0, "TE-core-structure" )
+# 		piechart_panCompVSTEfamily( df_non_pop_structure, f_TElibrary_nonpopStruc, axes, 1, "TE-residuals" )
+# 		plt.savefig( orders_filename, dpi=400, bbox_inches='tight' )
 	
 
 	#-----------------------#
 	#       clustermap      #
 	#-----------------------#
-	clustermap_filename = "clustermap_panREPET_Anthony.png"
-	if not os.path.exists( clustermap_filename ):
+# 	clustermap_filename = "clustermap_panREPET_Anthony.png"
+# 	if not os.path.exists( clustermap_filename ):
 
-		fig, axs = plt.subplots(1,2)
-		plt.subplots_adjust(wspace=0, hfspace=0)
-		clustermap( df_pop_structure, "TE-core-structure", axs[0] )
-		clustermap( df_non_pop_structure, "TE-residuals", axs[1] )
-		fig.savefig( clustermap_filename, dpi=500, bbox_inches='tight' )
+# 		fig, axs = plt.subplots(1,2)
+# 		plt.subplots_adjust(wspace=0, hfspace=0)
+# 		clustermap( df_pop_structure, "TE-core-structure", axs[0] )
+# 		clustermap( df_non_pop_structure, "TE-residuals", axs[1] )
+# 		fig.savefig( clustermap_filename, dpi=500, bbox_inches='tight' )
 		
 
 
@@ -1542,39 +1666,39 @@ if __name__ == "__main__":
 	#-----------------------#
 
 	window = 2000
-	#intersect_GO( df_pop_structure, "TE_core_structure",  window)
-	#intersect_GO( df_non_pop_structure, "TE_residuals", window )
+	intersect_GO( df_pop_structure, "../../output/TE_structure",  window )
+	intersect_GO( df_non_pop_structure, "../../output/TE_residuals", window )
 
 
-	goea1_filename = "goea_core_vs_residuals.png"
-	if not os.path.exists( goea1_filename ):
-		fig, axes = plt.subplots(2, 2, figsize=(20, 10))
+# 	goea1_filename = "goea_core_vs_residuals.png"
+# 	if not os.path.exists( goea1_filename ):
+# 		fig, axes = plt.subplots(2, 2, figsize=(20, 10))
 
-		# Case 1 : genes inside TEs
-		GOEA( "TE_core_structure/panREPET.bed.intersectVSgenes.sameAss.GO", True, axes[0,0], "a", "TE_pop_structure - Genes in TE", "M.domestica" )
-		GOEA( "TE_residuals/panREPET.bed.intersectVSgenes.sameAss.GO", True, axes[1,0], "c", "TE_residuals - Genes in TE", "M.domestica" )
+# 		# Case 1 : genes inside TEs
+# 		GOEA( "TE_core_structure/panREPET.bed.intersectVSgenes.sameAss.GO", True, axes[0,0], "a", "TE_pop_structure - Genes in TE", "M.domestica" )
+# 		GOEA( "TE_residuals/panREPET.bed.intersectVSgenes.sameAss.GO", True, axes[1,0], "c", "TE_residuals - Genes in TE", "M.domestica" )
 
-		# Case 2 : genes around TEs
-		GOEA( "TE_core_structure/panREPET.bed.intersectVSgenes.sameAss.GO", False, axes[0,1], "b", "TE_pop_structure - 2kbp Upstream and Downstream TE-Associated Genes", "M.domestica" )
-		GOEA( "TE_residuals/panREPET.bed.intersectVSgenes.sameAss.GO", False, axes[1,1], "d", "TE_residuals - 2kbp Upstream and Downstream TE-Associated Genes", "M.domestica" )
+# 		# Case 2 : genes around TEs
+# 		GOEA( "TE_core_structure/panREPET.bed.intersectVSgenes.sameAss.GO", False, axes[0,1], "b", "TE_pop_structure - 2kbp Upstream and Downstream TE-Associated Genes", "M.domestica" )
+# 		GOEA( "TE_residuals/panREPET.bed.intersectVSgenes.sameAss.GO", False, axes[1,1], "d", "TE_residuals - 2kbp Upstream and Downstream TE-Associated Genes", "M.domestica" )
 
-		fig.savefig( goea1_filename )
+# 		fig.savefig( goea1_filename )
 
 
-	goea2_filename = "goea_wild_vs_cultivar.png"
-	if not os.path.exists( goea2_filename ):
-		fig, axes = plt.subplots(2, 2, figsize=(20, 15))
+# 	goea2_filename = "goea_wild_vs_cultivar.png"
+# 	if not os.path.exists( goea2_filename ):
+# 		fig, axes = plt.subplots(2, 2, figsize=(20, 15))
 
-		#\textcolor{green}{\textbf{Wild}}
+# 		#\textcolor{green}{\textbf{Wild}}
 
-		# genes in TE
-		GOEA( "TE_residuals/panREPET.bed.intersectVSgenes.sameAss.GO", True, axes[0,0], "a", "Genes in TE \n Wild (M. sieversii)", "wild" ) #wild (M.sieversii/M.orientalis/M.sylvestris) I choose M.sieversii
-		GOEA( "TE_residuals/panREPET.bed.intersectVSgenes.sameAss.GO", True, axes[1,0], "c", "Genes in TE \n Cultivar (M. domestica)", "cultivar" ) #cultivar (M.domestica/MdoR106A) I choose M.domestica
-		# 2kbp Upstream and Downstream TE-Associated Genes
-		GOEA( "TE_residuals/panREPET.bed.intersectVSgenes.sameAss.GO", False, axes[0,1], "b", "2kbp Upstream and Downstream TE-Associated Genes \n Wild (M. sieversii)", "wild" )
-		GOEA( "TE_residuals/panREPET.bed.intersectVSgenes.sameAss.GO", False, axes[1,1], "d", "2kbp Upstream and Downstream TE-Associated Genes \n Cultivar (M. domestica)", "cultivar" )
+# 		# genes in TE
+# 		GOEA( "TE_residuals/panREPET.bed.intersectVSgenes.sameAss.GO", True, axes[0,0], "a", "Genes in TE \n Wild (M. sieversii)", "wild" ) #wild (M.sieversii/M.orientalis/M.sylvestris) I choose M.sieversii
+# 		GOEA( "TE_residuals/panREPET.bed.intersectVSgenes.sameAss.GO", True, axes[1,0], "c", "Genes in TE \n Cultivar (M. domestica)", "cultivar" ) #cultivar (M.domestica/MdoR106A) I choose M.domestica
+# 		# 2kbp Upstream and Downstream TE-Associated Genes
+# 		GOEA( "TE_residuals/panREPET.bed.intersectVSgenes.sameAss.GO", False, axes[0,1], "b", "2kbp Upstream and Downstream TE-Associated Genes \n Wild (M. sieversii)", "wild" )
+# 		GOEA( "TE_residuals/panREPET.bed.intersectVSgenes.sameAss.GO", False, axes[1,1], "d", "2kbp Upstream and Downstream TE-Associated Genes \n Cultivar (M. domestica)", "cultivar" )
 
-		fig.savefig( goea2_filename )
+# 		fig.savefig( goea2_filename )
 
 
 
@@ -1584,22 +1708,20 @@ if __name__ == "__main__":
 
 	#check_both_annotation( )
 
-	upset_filename = "upset_plot_Anthony.png"
+	upset_filename = "../../Figures/upset_plot_Anthony.png"
 	if os.path.exists( upset_filename ):
 
-		add_gene_selection( df_pop_structure, "TE_core_structure" )
-		add_gene_selection( df_non_pop_structure, "TE_residuals" )
+# 		add_gene_selection( df_pop_structure, "../../output/TE_structure" )
+# 		add_gene_selection( df_non_pop_structure, "../../output/TE_residuals" )
 	
-
-		df_pop_structure = add_genes_presence_absence( df_pop_structure, "TE_core_structure" )
+		df_pop_structure = add_genes_presence_absence( df_pop_structure, "../../output/TE_structure" )
 		print(f"\nAdd genes, TE_pop_structure:\n{df_pop_structure}\n")
-		df_non_pop_structure = add_genes_presence_absence( df_non_pop_structure, "TE_residuals" )
+		df_non_pop_structure = add_genes_presence_absence( df_non_pop_structure, "../../output/TE_residuals" )
 		print(f"\nAdd genes, TE_residuals:\n{df_non_pop_structure}\n")
 
-		
 		fig, axes = plt.subplots(nrows=1, ncols=2, figsize=(10,35))
 		plt.subplots_adjust(wspace=0, hspace=0.05)
-		upset_plot( df_pop_structure,  axes[0], "a - TE-pop-structure" ) #"TE population structure" )
+		upset_plot( df_pop_structure,  axes[0], "a - TE-structure" ) #"TE population structure" )
 		upset_plot( df_non_pop_structure, axes[1], "b - TE-residuals" ) #TE non population structure" )
 		plt.savefig( upset_filename, dpi=400, bbox_inches='tight' )
 		#plt.savefig( upset_filename + ".svg", dpi=400, bbox_inches='tight', format="svg" )
@@ -1626,20 +1748,20 @@ if __name__ == "__main__":
 	
 	
 
-	goea3_filename = "GOEA.png"
-	if not os.path.exists( goea3_filename ):
+# 	goea3_filename = "GOEA.png"
+# 	if not os.path.exists( goea3_filename ):
 
-		fig, axes = plt.subplots(2, 3, figsize=(25, 13)) #40
+# 		fig, axes = plt.subplots(2, 3, figsize=(25, 13)) #40
 
-		GOEA_plot( axes[0,0], "a", "TE_core_structure", "all" )
-		GOEA_plot( axes[0,1], "b", "TE_residuals", "all" )
-		GOEA_plot( axes[0,2], "c", "TE_residuals", "LTR_Copia" )
-		GOEA_plot( axes[1,0], "d", "TE_residuals", "LTR_Gypsy" )
-		GOEA_plot( axes[1,1], "e", "TE_residuals", "LTR" )
-		GOEA_plot( axes[1,2], "f", "TE_residuals", "TIR" )
-		# and noCat ?
+# 		GOEA_plot( axes[0,0], "a", "TE_core_structure", "all" )
+# 		GOEA_plot( axes[0,1], "b", "TE_residuals", "all" )
+# 		GOEA_plot( axes[0,2], "c", "TE_residuals", "LTR_Copia" )
+# 		GOEA_plot( axes[1,0], "d", "TE_residuals", "LTR_Gypsy" )
+# 		GOEA_plot( axes[1,1], "e", "TE_residuals", "LTR" )
+# 		GOEA_plot( axes[1,2], "f", "TE_residuals", "TIR" )
+# 		# and noCat ?
 
-		fig.savefig( goea3_filename, bbox_inches='tight' )
+# 		fig.savefig( goea3_filename, bbox_inches='tight' )
 	
 
 
