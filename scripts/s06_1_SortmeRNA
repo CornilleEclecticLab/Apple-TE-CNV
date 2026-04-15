@@ -1,0 +1,86 @@
+---
+
+# 2) Script 1 — `scripts/make_fastq_list.pl`
+
+```perl
+#!/usr/bin/env perl
+use strict;
+use warnings;
+use Getopt::Long qw(GetOptions);
+use File::Find qw(find);
+use File::Spec;
+
+# ------------------------------------------------------------
+# make_fastq_list.pl
+# Build a list of FASTQ(.gz) files under a root directory,
+# restricted to subfolders listed in a text file.
+#
+# Usage:
+#   perl scripts/make_fastq_list.pl --root /path/root \
+#     --folders-file config/fastq_folders.txt \
+#     --out fastq.gz.list
+# ------------------------------------------------------------
+
+my ($root, $folders_file, $out);
+GetOptions(
+  'root=s'         => \$root,
+  'folders-file=s' => \$folders_file,
+  'out=s'          => \$out,
+) or die "Error in arguments.\n";
+
+die "Missing --root\n"         unless $root;
+die "Missing --folders-file\n" unless $folders_file;
+die "Missing --out\n"          unless $out;
+
+die "Root directory not found: $root\n"         unless -d $root;
+die "Folders file not found: $folders_file\n"   unless -f $folders_file;
+
+open my $FH, '<', $folders_file or die "Cannot open $folders_file: $!\n";
+my @folders;
+while (my $line = <$FH>) {
+  chomp $line;
+  $line =~ s/\r$//;
+  next if $line =~ /^\s*$/;
+  next if $line =~ /^\s*#/;
+  push @folders, $line;
+}
+close $FH;
+
+die "No folders found in $folders_file\n" unless @folders;
+
+my %seen;
+my @fastqs;
+
+for my $sub (@folders) {
+  my $path = File::Spec->catdir($root, $sub);
+  unless (-d $path) {
+    warn "[WARN] Skipping missing folder: $path\n";
+    next;
+  }
+
+  find(
+    {
+      wanted => sub {
+        return unless -f $_;
+        my $full = $File::Find::name;
+
+        # Match common FASTQ extensions
+        return unless $full =~ /\.(fastq|fq)(\.gz)?$/i;
+
+        # Deduplicate
+        return if $seen{$full}++;
+        push @fastqs, $full;
+      },
+      no_chdir => 1,
+    },
+    $path
+  );
+}
+
+@fastqs = sort @fastqs;
+
+open my $OUT, '>', $out or die "Cannot write $out: $!\n";
+print $OUT join("\n", @fastqs), "\n";
+close $OUT;
+
+print "[OK] Wrote ", scalar(@fastqs), " FASTQ file(s) to $out\n";
