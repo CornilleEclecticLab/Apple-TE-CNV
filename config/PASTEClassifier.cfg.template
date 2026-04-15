@@ -1,0 +1,59 @@
+# TEMPLATE CONFIG — do not commit credentials.
+# Copy to config/PASTEClassifier.cfg and replace variables with real values.
+
+[repet_env]
+repet_version: 2.0
+repet_host: ${REPET_MYSQL_HOST}
+repet_user: ${REPET_MYSQL_USER}
+repet_pw: ${REPET_MYSQL_PASSWORD}
+repet_db: ${REPET_MYSQL_DB}
+repet_port: 3306
+repet_job_manager: SGE
+
+[project]
+project_name: ${PROJECT_NAME}
+project_dir: ${PROJECT_DIR}
+
+[detect_features]
+resources:
+tmpDir:
+term_rep: yes
+polyA: yes
+tand_rep: yes
+orf: yes
+blast: ncbi
+TE_BLRn: no
+TE_BLRtx: no
+TE_nucl_bank: rexdb-plant.20.05
+TE_BLRx: no
+TE_prot_bank: ${TE_PROT_BANK}
+HG_BLRn: no
+HG_nucl_bank: ${HG_NUCL_BANK}
+TE_HMMER: no
+TE_HMM_profiles: ${TE_HMM_PROFILES}
+TE_HMMER_evalue: 10
+rDNA_BLRn: no
+rDNA_bank: ${RDNA_BANK}
+tRNA_scan: no
+TRFmaxPeriod: 15
+clean: yes
+
+[classif_consensus]
+resources:
+tmpDir:
+max_profiles_evalue: 1e-3
+min_TE_profiles_coverage: 20
+min_HG_profiles_coverage: 75
+max_helitron_extremities_evalue: 1e-3
+min_TE_bank_coverage: 5
+min_HG_bank_coverage: 95
+min_rDNA_bank_coverage: 95
+min_HG_bank_identity: 90
+min_rDNA_bank_identity: 90
+min_SSR_coverage: 75
+remove_redundancy: no
+min_redundancy_identity: 95
+min_redundancy_coverage: 98
+rev_complement: no
+add_noCat_bestHitClassif: no
+clean: yes

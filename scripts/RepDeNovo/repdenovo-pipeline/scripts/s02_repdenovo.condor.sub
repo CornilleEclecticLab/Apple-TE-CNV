@@ -1,0 +1,28 @@
+Universe = vanilla
+should_transfer_files = no
+getenv = true
+
+# Set this to your installation path (can also be overridden at submit-time with -append)
+repdenovo_dir = /usr/local/src/REPdenovo
+python_bin = /usr/bin/python
+
+# Logs per sample
+log    = logs/$(sample_id).log
+output = logs/$(sample_id).out
+error  = logs/$(sample_id).err
+
+# Resources (from jobs.tsv columns)
+request_cpus   = $(cpus)
+request_memory = $(memory_gb)GB
+
+# Keep your requirement if needed
+requirements = ( HAS_ASREML =?= False )
+
+Executable = $(python_bin)
+
+# REPdenovo assembly (same command style as your file)
+Arguments = $(repdenovo_dir)/main.py -c Assembly -g $(config) -r $(reads)
+
+# Queue from TSV:
+# cluster/jobs.tsv columns: sample_id config reads cpus memory_gb
+Queue sample_id, config, reads, cpus, memory_gb from cluster/jobs.tsv
