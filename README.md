@@ -94,7 +94,7 @@ This module is more complex and is separated for clarity.
 
 
 Step 10 – Climate Adaptation Analysis
-	•	Script: s11_climate_adaptation
+	•	Script: s10_climate_adaptation
 	•	Performs downstream ecological/statistical analyses linking TE variation to environmental variables.
 
 
