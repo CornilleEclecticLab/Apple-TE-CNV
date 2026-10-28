@@ -98,3 +98,14 @@ Step 10 – Climate Adaptation Analysis
 	•	Performs downstream ecological/statistical analyses linking TE variation to environmental variables.
 
 
+
+## License
+
+This repository is released under the MIT License, an OSI-approved open source
+license (https://opensource.org/licenses/MIT). See the LICENSE file for the full
+text.
+
+## How to cite
+
+If you use this code, please cite the archived release on Zenodo (DOI below) and
+the accompanying publication.
