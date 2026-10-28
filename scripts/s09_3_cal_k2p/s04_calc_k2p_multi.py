@@ -17,7 +17,7 @@ def compute_k2p(pileup_file):
             # chrom, pos, ref, depth, bases, qual = line.strip().split("\t")
             cutting = line.strip().split("\t")
             if len(cutting) < 6:
-                continue  # ligne incomplète
+                continue  # incomplete line
             chrom = cutting[0]
             pos = cutting[1]
             ref = cutting[2].upper()
@@ -65,7 +65,7 @@ def compute_k2p(pileup_file):
     return results
 
 # --- I/O ---
-INPUT_PATTERN = "../../output/pileups/*.pileup"  # adapte si besoin ("*.pileup" pour le dossier courant)
+INPUT_PATTERN = "../../output/pileups/*.pileup"  # adjust if needed ("*.pileup" for the current directory)
 OUTPUT_DIR = "../../output/k2p"
 os.makedirs(OUTPUT_DIR, exist_ok=True)
 
@@ -79,21 +79,21 @@ for pileup in pileups:
     indiv = os.path.basename(pileup).replace(".pileup", "")
     results = compute_k2p(pileup)
 
-    # sortie par échantillon : *.pileup.k2p.tsv
+    # one output per sample: *.pileup.k2p.tsv
     out_path = os.path.join(OUTPUT_DIR, f"{indiv}.pileup.k2p.tsv")
     with open(out_path, "w") as out:
         out.write("Consensus\tK2P\n")
         for consensus, k2p in results.items():
             out.write(f"{consensus}\t{k2p}\n")
 
-    # impression console comme avant
+    # console output, as before
     # print(indiv)
     for consensus, k2p in results.items():
         # print(f"{indiv}\t{consensus}\t{k2p}")
         all_results.setdefault(consensus, []).append(k2p)
 
-# Résumé global par consensus (moyenne sur individus) – affichage console
-# print("\n# Résumé par consensus (moyenne K2P sur tous les individus)")
+# Overall summary per consensus (mean across individuals) - console output
+# print("\n# Summary per consensus (mean K2P across all individuals)")
 # print("Consensus\tMoyenneK2P\tN_individus")
 for consensus, values in all_results.items():
     clean_vals = [v for v in values if not math.isnan(v)]

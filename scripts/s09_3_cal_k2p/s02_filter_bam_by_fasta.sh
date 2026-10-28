@@ -19,8 +19,8 @@ module load all gencore/2
 module load samtools/1.9
 
 # Directories
-INDIR="../../data/BAM/originel/Duan"            # répertoire contenant les BAM
-OUTDIR="../../data/BAM/filtered"  # répertoire de sortie
+INDIR="../../data/BAM/originel/Duan"            # directory holding the input BAM files
+OUTDIR="../../data/BAM/filtered"  # output directory
 mkdir -p "$OUTDIR"
 
 # Reference fasta (3,780 sequences)

@@ -49,6 +49,9 @@ f_non_pop_structure = f"{work_dir}/{dir_non_pop_structure}/clique/filter80/cliqu
 f_unique_popStruc = f"{work_dir}/{dir_pop_structure}/uniqueCopies/filter80/concat_uniqueCopies_filter80.tsv"
 f_unique_nonpopStruc = f"{work_dir}/{dir_non_pop_structure}/uniqueCopies/filter80/concat_uniqueCopies_filter80.tsv"
 
+# Directory holding the "TE_list_VS_gt_<VS>.txt" files (spatial vector strength
+# thresholds). Set it to wherever those lists live on your system.
+DIR_VS_LISTS = "../../data/TElists"
 f_TElibrary_popStruc = "../../data/TElists/250923_TE_structure.txt"
 f_TElibrary_nonpopStruc = "../../data/TElists/250923_TE_residuals.txt"
 
@@ -506,15 +509,15 @@ def intersect_GO( df, outDir, window ):
 
 
 def filter_clique1(group):
-	# Vérifier si toutes les valeurs dans 'accession' sont strictement 'M.sieversii', 'M.orientalis', 'M.sylvestris'
+	# Check that every value in 'accession' is strictly 'M.sieversii', 'M.orientalis' or 'M.sylvestris'
 	return all(group['accession'].isin(['M.sieversii', 'M.orientalis', 'M.sylvestris']))
 
 def filter_clique2(group):
-	# Vérifier si toutes les valeurs dans 'accession' sont strictement "M.domestica" ou "MdoR106A"
+	# Check that every value in 'accession' is strictly "M.domestica" or "MdoR106A"
 	return all(group['accession'].isin(['M.domestica', 'MdoR106A']))
 
 def filter_clique3(group, sp):
-	# Vérifier si toutes les valeurs dans 'accession' sont strictement 'M.sieversii', 'M.orientalis', 'M.sylvestris'
+	# Check that every value in 'accession' is strictly 'M.sieversii', 'M.orientalis' or 'M.sylvestris'
 	return all(group['accession'].isin([sp]))
 
 
@@ -575,9 +578,9 @@ def GOEA( f, inTE, ax, title, title2, species, order ):
 	df.to_csv(f + f".{inTE}.{species_name}.{order}", sep="\t", index=False)
 
 	### Stats
-	# Nombre de clique_id uniques
+	# Number of unique clique_id values
 	nb_cliques = df[["clique_id", "GOs"]].nunique()
-	# Calculer la médiane et la moyenne des nombres de GO
+	# Compute the median and mean number of GO terms
 	df["GO_count"] = df["GOs"].apply(lambda x: len(x.split(",")))
 	median_go = df["GO_count"].median()
 	average_go = df["GO_count"].mean()
@@ -587,13 +590,13 @@ def GOEA( f, inTE, ax, title, title2, species, order ):
 	print(f"{average_go} GOs per gene in average")
 
 
-	# ========> 1. Charger le fichier OBO GO
+	# ========> 1. Load the GO OBO file
 	go_obo_file = "go-basic.obo"
 	go_dag = GODag(go_obo_file)
 	go = obo_parser.GODag(go_obo_file)
 
 	# ========> 2. Population de gènes (ensemble de gènes d'intérêt)
-	df_annotation = pd.read_csv(f_GOs, sep="\t") #la population c'est ton annotation en gène de départ # example {'GENE1', 'GENE2', 'GENE3', 'GENE4'}
+	df_annotation = pd.read_csv(f_GOs, sep="\t") # the population is the starting gene annotation # example {'GENE1', 'GENE2', 'GENE3', 'GENE4'}
 	print(f"\ndf_genes:\n{df_annotation}\n")
 	df_annotation = df_annotation[df_annotation["Assembly_name"] == d_ass_names[species]]
 	print(f"\ndf_genes ({species}):\n{df_annotation}\n")
@@ -645,7 +648,7 @@ def GOEA( f, inTE, ax, title, title2, species, order ):
 		)
 
 
-		# ========> 5. Lancer l'enrichissement GO
+		# ========> 5. Run the GO enrichment
 		study = df["query"].to_list()
 		goea_results = goeaobj.run_study(study)
 		#for result in goea_results:
@@ -1498,7 +1501,7 @@ def get_highTE( VS ):
 	if VS == "noVS":
 		f_highTE = f_TElibrary_nonpopStruc
 	else:
-		f_highTE = f"/mnt/Volume_Somia/Malus_PLEASURE_ANR/data_Anthony/TE_list_VS_gt_{VS}.txt"
+		f_highTE = f"{DIR_VS_LISTS}/TE_list_VS_gt_{VS}.txt"
 
 	df_highTE = pd.read_csv(f_highTE, sep="\t", names=['TE_name'])
 	#print(df_highTE)
@@ -1514,7 +1517,7 @@ def filter_clique_1(group):
 	return all(group['accession'].isin(['M.domestica', 'M.sylvestris']))
 
 def filter_clique_2(group):
-	# Vérifier si toutes les valeurs dans 'accession' sont strictement "M.domestica" ou "MdoR106A"
+	# Check that every value in 'accession' is strictly "M.domestica" or "MdoR106A"
 	return all(group['accession'].isin(['M.domestica', 'MdoR106A']))
 
 #def filter_clique_3(group):

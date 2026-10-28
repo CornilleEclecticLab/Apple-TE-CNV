@@ -7,7 +7,7 @@
 ##SBATCH -c 64
 ##SBATCH --mem=32G
 
-# Script pour générer des fichiers pileup à partir de BAM déjà triés (id.sorted.bam).
+# Generate pileup files from BAM files that are already sorted (id.sorted.bam).
 
 module load all gencore/2
 module load samtools/1.9
@@ -15,12 +15,12 @@ module load samtools/1.9
 # Exit si une commande échoue
 set -e
 
-# Répertoires et fichiers
+# Directories and files
 BAM_DIR="../../data/BAM/filtered" # from 158,331 sequences to 3,780 seq
 PILEUP_DIR="../../output/pileups"
 REF_FASTA="../../data/TElibrary/Final_V2_DUAN_DACCORD_ATIP_DATABASE_non-redundant_150.reformat.reformat.reformat.fasta" #3,640 sequences
 
-# Dossier de sortie pour les pileups
+# Output directory for the pileups
 mkdir -p "$PILEUP_DIR"
 
 # Index du génome si nécessaire
@@ -33,7 +33,7 @@ for SORTED in "$BAM_DIR"/*sorted.bam; do
     NAME=$(basename "$SORTED")
     OUT="${PILEUP_DIR}/${NAME}.pileup"
 
-    # Vérifie si le pileup existe déjà
+    # Skip if the pileup already exists
     if [ -s "$OUT" ]; then
         echo "Skipping $NAME: pileup already exists ($OUT)"
         continue
@@ -41,7 +41,7 @@ for SORTED in "$BAM_DIR"/*sorted.bam; do
 
     echo "Processing $NAME"
 
-    # Vérifie et indexe le BAM trié
+    # Check and index the sorted BAM
     if [ ! -f "${SORTED}.bai" ]; then
         samtools index "$SORTED"
     fi
