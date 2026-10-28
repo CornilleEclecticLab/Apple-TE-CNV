@@ -197,17 +197,17 @@ def annotate_pvalue(ax, x1, x2, y, text, h=0.02):
     """
     Draws a p-value annotation above two groups.
     """
-    # Calculer la hauteur relative selon l’échelle (lin ou log)
+    # Compute the relative height according to the scale (linear or log)
     if ax.get_yscale() == "log":
         return
     else:
         y_line = y + h
         y_text = y + 1.5*h
 
-    # Tracer la ligne de liaison
+    # Draw the connecting line
     ax.plot([x1, x1, x2, x2], [y, y_line, y_line, y], lw=1, c="k")
 
-    # Placer le texte avec une marge raisonnable
+    # Place the label with a reasonable margin
     ax.text((x1 + x2) * 0.5, y_text, text, ha='center', va='bottom', fontsize=10)
     
 def plot_violin_with_stats(groups_dict, out_png, test_label, p_value, means=None):
