@@ -332,7 +332,6 @@ def main() -> None:
         )
 
     write_fasta(final_sequences, output_path)
-_
     summary_path = output_path.with_suffix(output_path.suffix + ".summary.tsv")
     with summary_path.open("w") as handle:
         handle.write(
