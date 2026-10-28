@@ -55,7 +55,7 @@ DIR_VS_LISTS = "../../data/TElists"
 f_TElibrary_popStruc = "../../data/TElists/250923_TE_structure.txt"
 f_TElibrary_nonpopStruc = "../../data/TElists/250923_TE_residuals.txt"
 
-# Aurélie
+# Gene annotation and GO files
 f_genes = "../../data/genes/concat.emapper.decorated.reformatChr.gff" # sed -E 's/Chr/chr/g; s/chr0+([0-9])/\1/g' concat.emapper.decorated.gff > concat.emapper.decorated.reformatChr.gff
 #f_genes_Mdo = "/mnt/Volume_Somia/Malus_PLEASURE_ANR/data_Anthony/genes/Mdo.emapper.decorated.gff.gene"
 f_GOs = "../../data/genes/concat.emapper.annotations.reformatChr" # sed -E 's/Chr([0-9]+)/chr\1/g; s/chr0+([0-9])([^0-9])?/chr\1\2/g' concat.emapper.annotations > concat.emapper.annotations.reformatChr
@@ -584,7 +584,7 @@ def GOEA( f, inTE, ax, title, title2, species, order ):
 	df["GO_count"] = df["GOs"].apply(lambda x: len(x.split(",")))
 	median_go = df["GO_count"].median()
 	average_go = df["GO_count"].mean()
-	# Affichage des résultats
+	# Print the results
 	print(f"{nb_cliques} cliques having GOs")
 	print(f"{median_go} GOs per gene in median")
 	print(f"{average_go} GOs per gene in average")
@@ -595,7 +595,7 @@ def GOEA( f, inTE, ax, title, title2, species, order ):
 	go_dag = GODag(go_obo_file)
 	go = obo_parser.GODag(go_obo_file)
 
-	# ========> 2. Population de gènes (ensemble de gènes d'intérêt)
+	# ========> 2. Gene population (the set of genes of interest)
 	df_annotation = pd.read_csv(f_GOs, sep="\t") # the population is the starting gene annotation # example {'GENE1', 'GENE2', 'GENE3', 'GENE4'}
 	print(f"\ndf_genes:\n{df_annotation}\n")
 	df_annotation = df_annotation[df_annotation["Assembly_name"] == d_ass_names[species]]
@@ -607,10 +607,10 @@ def GOEA( f, inTE, ax, title, title2, species, order ):
 	print(f"\nreformated df_genes:\n{df_valid}\n")
 	pop = set(df_valid["query"])
 	#print(pop)
-	print(f"\nPopulation de référence (pop) : {len(pop)} gènes")
+	print(f"\nReference population (pop): {len(pop)} genes")
 
 
-	# ========> 3. Associations GO pour les gènes
+	# ========> 3. GO associations for the genes
 	#assoc = {
 	#	'GENE1': {'GO:0008150', 'GO:0007049'},
 	#	'GENE2': {'GO:0007049', 'GO:0051301'},
@@ -637,7 +637,7 @@ def GOEA( f, inTE, ax, title, title2, species, order ):
 	if not filtered_assoc:
 		print(f"Error: Associations file is empty or does not exist.")
 	else:
-		# ========> 4. Créer l'objet GOEnrichmentStudy
+		# ========> 4. Build the GOEnrichmentStudy object
 		goeaobj = GOEnrichmentStudy(
 			pop=pop,
 			assoc=filtered_assoc, #assoc,
@@ -668,22 +668,22 @@ def GOEA( f, inTE, ax, title, title2, species, order ):
 			results_df = results_df[results_df["NS"] == "BP"]
 			#print(results_df)
 
-			# Trier par p-value ajustée (fdr_bh)
+			# Sort by adjusted p-value (fdr_bh)
 			results_df = results_df.sort_values(by=['p_fdr', 'study_count'], ascending=[True, False])
 			#print(results_df)
-			# Filter par p-value ajustée (fdr_bh)
+			# Filter on adjusted p-value (fdr_bh)
 			#results_df = results_df[results_df['p_fdr'] < 0.001]
 			results_df = results_df.head(35)
 			print(f"\nGOEA df result:\n{results_df}\n")
 
-			# Visualiser les résultats avec un dotplot
+			# Show the results as a dotplot
 			sns.scatterplot(
 				ax=ax,
 				data=results_df,
-				y='name',  # Le nom du terme GO
-				x='p_fdr',  # P-value ajustée p_bonferroni
+				y='name',  # the GO term name
+				x='p_fdr',  # adjusted p-value, p_bonferroni
 				size='study_count',  # Taille du terme GO
-				hue='study_count',  # Nombre d'occurrences dans les gènes d'intérêt
+				hue='study_count',  # number of occurrences among the genes of interest
 				palette='coolwarm',  # Palette de couleurs
 				#sizes=(50, 500)  # Plage des tailles des points
 			)
@@ -732,7 +732,7 @@ def get_level_1_go_names( go_terms, go_dag ):
 					go_terms_level0_list.append(term_info.name)
 			except KeyError:
 				""
-        			#print(f"Clé {go_term} non trouvée dans go_dag")
+        			#print(f"Key {go_term} not found in go_dag")
 
 		#print(go_terms_level0_list)
 
@@ -888,10 +888,10 @@ def upset_plot( df, ax, title ):
 
 
     # ===========================================================
-    # 🔹 Création du DataFrame df_orderPerc : proportion d'ordre par intersection
+    # Build the df_orderPerc DataFrame: TE order proportion per intersection
     # ===========================================================
 
-    # On remet à plat le DataFrame avec les colonnes booléennes
+    # Flatten the DataFrame back out, with the boolean columns
     df_reset = df.reset_index()
 
     # Compter le nombre unique de TE insertions par intersection et par ordre
@@ -914,7 +914,7 @@ def upset_plot( df, ax, title ):
     count_order['order_percent'] = 100 * count_order['count'] / count_order['total']
     count_GO['GO_percent'] = 100 * count_GO['count'] / count_GO['total']
 
-    # Renommage pour plus de clarté
+    # Rename for clarity
     df_orderPerc = count_order[sets + ['order', 'order_percent']].copy()
     df_GOPerc = count_GO[sets + ['level_1_go_names', 'GO_percent']].copy()
 
@@ -922,7 +922,7 @@ def upset_plot( df, ax, title ):
     df_orderPerc = df_orderPerc.sort_values(by=['order_percent', 'order']).reset_index(drop=True)
     df_GOPerc = df_GOPerc.sort_values(by=['level_1_go_names']).reset_index(drop=True)
 
-    print("\n--- Aperçu de df_orderPerc ---")
+    print("\n--- Preview of df_orderPerc ---")
     print(df_orderPerc.head(15))
     df_orderPerc.to_csv(f"order_percent_{title}.csv", sep=',')
 
@@ -950,11 +950,11 @@ def upset_plot( df, ax, title ):
     upset.add_catplot(
         kind="bar",
         value="GO_percent",
-        hue="level_1_go_names",           # pour colorer selon l’ordre TE
-        dodge=True,            # sépare les barres par couleur
+        hue="level_1_go_names",           # colour by TE order
+        dodge=True,            # split the bars by colour
         palette=d_gene_color, # ta palette de couleurs
         elements=8,            # taille visuelle
-        width=0.8,        # <— plus large (valeurs entre 0 et 1, par défaut 0.8)
+        width=0.8,        # wider (values between 0 and 1, default 0.8)
         linewidth=0.1,    # <— contour des barres plus visible
         edgecolor="black" # <— optionnel : ajoute un contour noir
     )
@@ -968,20 +968,20 @@ def upset_plot( df, ax, title ):
     upset.add_catplot(
         kind="bar",
         value="order_percent",
-        hue="order",           # pour colorer selon l’ordre TE
-        dodge=True,            # sépare les barres par couleur
+        hue="order",           # colour by TE order
+        dodge=True,            # split the bars by colour
         palette=d_order_color, # ta palette de couleurs
         elements=8,            # taille visuelle
-        width=1,        # <— plus large (valeurs entre 0 et 1, par défaut 0.8)
+        width=1,        # wider (values between 0 and 1, default 0.8)
         linewidth=0.3,    # <— contour des barres plus visible
         edgecolor="black" # <— optionnel : ajoute un contour noir
     )
 
     for i in range(1, len(sets) + 1):  # Boucle sur la taille des combinaisons
         for comb in combinations(sets, i):
-            color = determine_color(comb,sets)  # Déterminer la couleur pour l'intersection
+            color = determine_color(comb,sets)  # Determine the colour of the intersection
             upset.style_subsets(
-                present=list(comb),  # Intersection spécifique
+                present=list(comb),  # specific intersection
                 facecolor=color,
                 edgecolor=color,
                 linewidth=2,
@@ -990,11 +990,11 @@ def upset_plot( df, ax, title ):
     )
     
     axes = upset.plot()
-    # Exemple : récupérer le subplot principal (barres d’intersection)
-    print("\n--- Clés disponibles dans axes ---")
+    # Example: get the main subplot (intersection bars)
+    print("\n--- Keys available in axes ---")
     print(axes.keys())#dict_keys(['matrix', 'shading', 'totals', 'intersections', 'extra1', 'extra2', 'extra3', 'extra4', 'extra5'])
     
-    # Déplacer la légende associée
+    # Move the associated legend
     leg = axes['extra1'].get_legend()
     if leg:
         leg.set_bbox_to_anchor((1.05, 1))
@@ -1329,7 +1329,7 @@ def extract_random_sequences(
 
 def get_level2_terms(go_list_str, go_dag):
 
-	if pd.isna(go_list_str) or go_list_str=="None":  # Gère les NaN ou None
+	if pd.isna(go_list_str) or go_list_str=="None":  # handle NaN or None
 		return "None"
 
 	go_ids = [go.strip() for go in go_list_str.split(',')]
@@ -1381,7 +1381,7 @@ def add_GOs_from_bedtools( outdir, f ):
 	df = df.fillna("None")
 	print(df["locusName"])
 
-	# Charger le fichier OBO GO
+	# Load the GO OBO file
 	go_obo_file = "go-basic.obo"
 	go_dag = GODag(go_obo_file)
 	df['GO_level2'] = df['GO'].apply(lambda gos: get_level2_terms(gos, go_dag))
@@ -1513,7 +1513,7 @@ def get_highTE( VS ):
 
 
 def filter_clique_1(group):
-	# Vérifier si toutes les valeurs dans 'accession' sont strictement "M.domestica" ou "M.sylvestris"
+	# Check that every value in 'accession' is strictly "M.domestica" or "M.sylvestris"
 	return all(group['accession'].isin(['M.domestica', 'M.sylvestris']))
 
 def filter_clique_2(group):
@@ -1521,7 +1521,7 @@ def filter_clique_2(group):
 	return all(group['accession'].isin(['M.domestica', 'MdoR106A']))
 
 #def filter_clique_3(group):
-	# Vérifier si toutes les valeurs dans 'accession' sont strictement "M.domestica" ou "M.orientalis"
+	# Check that every value in 'accession' is strictly "M.domestica" or "M.orientalis"
 	#return all(group['accession'].isin(['M.domestica', 'M.orientalis']))
 
 

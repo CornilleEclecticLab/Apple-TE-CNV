@@ -12,7 +12,7 @@
 module load all gencore/2
 module load samtools/1.9
 
-# Exit si une commande échoue
+# Exit on the first failing command
 set -e
 
 # Directories and files
@@ -23,7 +23,7 @@ REF_FASTA="../../data/TElibrary/Final_V2_DUAN_DACCORD_ATIP_DATABASE_non-redundan
 # Output directory for the pileups
 mkdir -p "$PILEUP_DIR"
 
-# Index du génome si nécessaire
+# Index the reference if needed
 if [ ! -f "${REF_FASTA}.fai" ]; then
     echo "Indexing reference..."
     samtools faidx "$REF_FASTA"
@@ -46,7 +46,7 @@ for SORTED in "$BAM_DIR"/*sorted.bam; do
         samtools index "$SORTED"
     fi
 
-    # Crée le pileup
+    # Build the pileup
     samtools mpileup -f "$REF_FASTA" "$SORTED" > "$OUT"
 
     echo " -> $OUT created"
