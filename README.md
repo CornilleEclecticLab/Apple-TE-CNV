@@ -22,6 +22,7 @@ analyses presented in the manuscript.
 ```
 config/                                 # Configuration templates (PASTEC, REPdenovo)
 data/metadata/                          # Sample-level metadata
+analysis/                               # Downstream analyses and the figures (see analysis/README.md)
 scripts/
 ├── s01_RepDeNovo/                      # TE discovery with REPdenovo (+ HTCondor runner)
 ├── s02_deduplicate_te_fasta.py         # Remove redundant TE sequences
@@ -36,6 +37,11 @@ scripts/
 ├── s09_3_cal_k2p/                      # K2P divergence from BAM pileups
 └── s10_climate_adaptation.R            # Downstream ecological analysis
 ```
+
+`scripts/` is the upstream pipeline, from raw reads to TE copy numbers.
+`analysis/` holds everything downstream of that: the population-genomic and
+reviewer-response analyses, and the code that draws Figures 1, 2 and 3. See
+[analysis/README.md](analysis/README.md).
 
 ## Pipeline description
 
