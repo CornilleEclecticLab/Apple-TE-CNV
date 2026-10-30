@@ -41,8 +41,9 @@ other script does so itself.
 | **`33_fig1_heatmaps_cvd.R`** | **Figures 1E and 1F, the TE heatmaps** |
 | **`34_palette_reference.R`** | the reference swatch sheet for the whole palette |
 | **`35_figS5_snp_pca.R`** | **Supplementary Figure S5, the SNP PCA, as vector output** |
-| **`36_figS8_te_pca.R`** | **Supplementary Figure S8, the TE PCA by SNP group, as vector output** |
+| **`36_figS8_te_pca.R`** | **Supplementary Figure S8, the TE PCA in three dimensions** |
 | **`37_figS6_snp_pca_3d.R`** | **Supplementary Figure S6, the SNP PCA in three dimensions** |
+| **`38_figS9_te_composition.R`** | **Supplementary Figure S9, structural TE composition** |
 
 ## Inputs
 
