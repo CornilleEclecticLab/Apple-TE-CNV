@@ -1,7 +1,10 @@
 # =============================================================================
 # Script:  35_figS5_snp_pca.R
 # Purpose: Supplementary Figure S5 - PCA on the 1,297 unlinked synonymous SNPs
-#          genotyped in the 189 Malus accessions, first two components.
+#          genotyped in the 189 Malus accessions. TWO projections, PC1 vs PC2
+#          and PC1 vs PC3, as in the published figure: the point of showing
+#          both is that PC3 separates groups that PC2 leaves superimposed, so
+#          dropping the second panel loses the whole argument.
 #
 #          The published version was embedded in the supplementary Word file as
 #          a 909 x 910 px bitmap, i.e. 136 dpi at 170 mm wide, which the editor
@@ -51,13 +54,19 @@ pca$fg  <- pt_col
 lab <- function(i) sprintf("PC%d (%s%%)", i,
                            format(round(var$variance_explained[i], 1), trim = TRUE))
 
-draw <- function() {
-  layout(matrix(1:2, ncol = 1), heights = c(4.2, 1))
-  par(mar = c(4.2, 4.4, 2.2, 1.2), cex = 0.9)
-  plot(pca$PC1, pca$PC2, type = "n", xlab = lab(1), ylab = lab(2),
-       main = "PCA SNP - PC1 vs PC2")
-  points(pca$PC1, pca$PC2, pch = 21, cex = 1.15, lwd = 1.1,
+panel <- function(yi) {
+  plot(pca$PC1, pca[[paste0("PC", yi)]], type = "n",
+       xlab = lab(1), ylab = lab(yi),
+       main = sprintf("PCA SNP - PC1 vs PC%d", yi))
+  points(pca$PC1, pca[[paste0("PC", yi)]], pch = 21, cex = 1.15, lwd = 1.1,
          col = pca$fg, bg = pca$bg)
+}
+
+draw <- function() {
+  layout(matrix(1:3, ncol = 1), heights = c(4, 4, 1.1))
+  par(mar = c(4.2, 4.4, 2.2, 1.2), cex = 0.9)
+  panel(2)
+  panel(3)
 
   ## Each group and its admixed counterpart sit one above the other, three
   ## columns of four, exactly as in the published legend. legend() fills
@@ -71,7 +80,7 @@ draw <- function() {
          col = col_leg, pt.bg = bg_leg)
 }
 
-W <- 170 / 25.4; H <- 6.4
+W <- 170 / 25.4; H <- 9.4
 f <- file.path(OUT, "FigS05_PCA_SNP_PC1_PC2")
 svglite::svglite(paste0(f, ".svg"), width = W, height = H); draw(); dev.off()
 grDevices::cairo_pdf(paste0(f, ".pdf"), width = W, height = H); draw(); dev.off()
@@ -79,5 +88,5 @@ grDevices::cairo_pdf(paste0(f, ".pdf"), width = W, height = H); draw(); dev.off(
 cat(sprintf("Figure S5 redrawn: %d accessions, %d admixed\n",
             nrow(pca), sum(pca$admixed)))
 print(table(pca$group, ifelse(pca$admixed, "admixed", "core")))
-cat(sprintf("axes: %s / %s\n", lab(1), lab(2)))
+cat(sprintf("axes: %s / %s / %s\n", lab(1), lab(2), lab(3)))
 cat("  written:", f, ".pdf / .svg\n")
