@@ -40,6 +40,7 @@ other script does so itself.
 | **`32_figure3_layers_cvd.R`** | Figure 3 panel A as separate layers, for manual assembly |
 | **`33_fig1_heatmaps_cvd.R`** | **Figures 1E and 1F, the TE heatmaps** |
 | **`34_palette_reference.R`** | the reference swatch sheet for the whole palette |
+| **`35_figS5_snp_pca.R`** | **Supplementary Figure S5, the SNP PCA, as vector output** |
 
 ## Inputs
 
