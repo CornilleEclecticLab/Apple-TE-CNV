@@ -43,7 +43,8 @@ other script does so itself.
 | **`35_figS5_snp_pca.R`** | **Supplementary Figure S5, the SNP PCA, as vector output** |
 | **`36_figS8_te_pca.R`** | **Supplementary Figure S8, the TE PCA in three dimensions** |
 | **`37_figS6_snp_pca_3d.R`** | **Supplementary Figure S6, the SNP PCA in three dimensions** |
-| **`38_figS9_te_composition.R`** | **Supplementary Figure S9, structural TE composition** |
+| **`38_figS9_S12_te_composition.R`** | **Supplementary Figures S9 and S12, TE composition** |
+| **`39_figS7_te_pca_geo.R`** | **Supplementary Figure S7, the TE PCA by geographical group** |
 
 ## Inputs
 

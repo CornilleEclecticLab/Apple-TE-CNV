@@ -1,7 +1,8 @@
 # =============================================================================
-# Script:  38_figS9_te_composition.R
-# Purpose: Supplementary Figure S9 - distribution of the 2,420 TE consensus
-#          sequences identified as structural TEs, per TE category.
+# Script:  38_figS9_S12_te_composition.R
+# Purpose: Supplementary Figures S9 and S12 - distribution of the TE consensus
+#          sequences per TE category, for the structural set (S9, 2,420 TEs)
+#          and the residual set (S12, 1,360 TEs).
 #
 #          Redrawn with the colour-blind-safe palette of the paper, so that a
 #          category keeps the same colour here as in Figures 1, 2 and 3.
@@ -9,11 +10,15 @@
 #          NOTHING is recomputed: the categories are read off the TE names in
 #          250923_TE_structure.txt, exactly as the published figure does, and
 #          the counts are printed to the console so they can be checked against
-#          it (noCat 667, LTR 652, Gypsy 555, LINE 209, Copia 168, TIR 157,
-#          Helitron 4, SINE 3, SSR 2, MITE 1, mixture 1, pararetrovirus 1).
+#          it. Published values, both reproduced exactly here:
+#            S9  noCat 667, LTR 652, Gypsy 555, LINE 209, Copia 168, TIR 157,
+#                Helitron 4, SINE 3, SSR 2, MITE 1, mixture 1, pararetrovirus 1
+#            S12 LTR 505, Gypsy 350, noCat 226, TIR 115, Copia 108, LINE 54,
+#                Helitron 1, SINE 1
 #
 # Author:  Antho
-# Outputs: FigS09_TE_composition_structural, SVG + PDF
+# Outputs: FigS09_TE_composition_structural and
+#          FigS12_TE_composition_residual, SVG + PDF
 # =============================================================================
 suppressPackageStartupMessages({library(svglite)})
 
@@ -41,10 +46,9 @@ TE_COL <- c(
   mixture        = "#4D4D4D",
   pararetrovirus = "#AAAAAA")
 
-te <- readLines(file.path(DATA, "250923_TE_structure.txt"))
-
-## Order matters: Gypsy and Copia are LTR subfamilies, so they must be matched
-## before the generic LTR pattern, exactly as in the published figure.
+## Classification of a TE name. Order matters: Gypsy and Copia are LTR
+## subfamilies and must be matched before the generic LTR pattern, exactly as
+## in the published figures.
 classify <- function(x) {
   ifelse(grepl("Gypsy", x),          "Gypsy",
   ifelse(grepl("Copia", x),          "Copia",
@@ -60,28 +64,33 @@ classify <- function(x) {
   ifelse(grepl("noCat", x),          "noCat", NA_character_))))))))))))
 }
 
-cat_te <- classify(te)
-stopifnot(!any(is.na(cat_te)))
-cnt <- sort(table(cat_te), decreasing = TRUE)
-stopifnot(all(names(cnt) %in% names(TE_COL)))
+build <- function(list_file, out_name, title_label) {
+  te <- readLines(file.path(DATA, list_file))
+  cat_te <- classify(te)
+  stopifnot(!any(is.na(cat_te)))
+  cnt <- sort(table(cat_te), decreasing = TRUE)
+  stopifnot(all(names(cnt) %in% names(TE_COL)))
 
-draw <- function() {
-  par(mar = c(7.5, 4.6, 3.2, 1.2), cex = 0.9)
-  b <- barplot(cnt, col = TE_COL[names(cnt)], border = "grey25",
-               las = 2, ylim = c(0, max(cnt) * 1.12),
-               ylab = "Number of sequences", xlab = "",
-               main = sprintf("TE composition - structural TEs\nTotal elements: %d",
-                              length(te)))
-  text(b, as.numeric(cnt), labels = as.numeric(cnt), pos = 3, cex = 0.75)
-  mtext("TE category", side = 1, line = 6.2, cex = 0.9)
+  draw <- function() {
+    par(mar = c(7.5, 4.6, 3.2, 1.2), cex = 0.9)
+    b <- barplot(cnt, col = TE_COL[names(cnt)], border = "grey25",
+                 las = 2, ylim = c(0, max(cnt) * 1.12),
+                 ylab = "Number of sequences", xlab = "",
+                 main = sprintf("TE composition - %s TEs\nTotal elements: %d",
+                                title_label, length(te)))
+    text(b, as.numeric(cnt), labels = as.numeric(cnt), pos = 3, cex = 0.75)
+    mtext("TE category", side = 1, line = 6.2, cex = 0.9)
+  }
+
+  W <- 170 / 25.4; H <- 5.4
+  f <- file.path(OUT, out_name)
+  svglite::svglite(paste0(f, ".svg"), width = W, height = H); draw(); dev.off()
+  grDevices::cairo_pdf(paste0(f, ".pdf"), width = W, height = H); draw(); dev.off()
+
+  cat(sprintf("%s: %d TEs in %d categories\n", out_name, length(te), length(cnt)))
+  print(cnt)
+  cat("  written:", f, ".pdf / .svg\n\n")
 }
 
-W <- 170 / 25.4; H <- 5.4
-f <- file.path(OUT, "FigS09_TE_composition_structural")
-svglite::svglite(paste0(f, ".svg"), width = W, height = H); draw(); dev.off()
-grDevices::cairo_pdf(paste0(f, ".pdf"), width = W, height = H); draw(); dev.off()
-
-cat(sprintf("Figure S9: %d structural TEs in %d categories\n",
-            length(te), length(cnt)))
-print(cnt)
-cat("  written:", f, ".pdf / .svg\n")
+build("250923_TE_structure.txt", "FigS09_TE_composition_structural", "structural")
+build("250923_TE_residuals.txt", "FigS12_TE_composition_residual",  "residual")
