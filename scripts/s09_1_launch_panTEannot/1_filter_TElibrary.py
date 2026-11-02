@@ -1,3 +1,13 @@
+"""
+Split the TE consensus library into the two sets used by panTEannot.
+
+Reads the full consensus FASTA and the two lists of TE identifiers produced
+upstream (structural and residual TEs), and writes one FASTA per list. The
+length distribution of each subset is printed so that the split can be
+checked at a glance.
+
+Paths to the FASTA and to the two lists are set at the top of the file.
+"""
 from Bio import SeqIO
 import statistics
 

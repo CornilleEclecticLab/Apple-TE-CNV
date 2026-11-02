@@ -1,4 +1,19 @@
 #!/usr/bin/env python3
+"""
+Step 2 of the pipeline: curate the TE consensus library.
+
+Merges the FASTA files produced by the three sources (REPdenovo,
+RepeatExplorer and the GDDH13 TE database), gives every sequence a unique
+sanitised identifier, then removes redundant consensus sequences: an
+all-against-all BLAST is run and, for each pair above the identity and
+coverage thresholds, the shorter sequence is dropped.
+
+Outputs the non-redundant FASTA plus a .summary.tsv listing, for every
+sequence removed, the sequence it was merged into and the identity and
+coverage that justified it.
+
+Run with --help for the input files and the thresholds.
+"""
 
 from __future__ import annotations
 

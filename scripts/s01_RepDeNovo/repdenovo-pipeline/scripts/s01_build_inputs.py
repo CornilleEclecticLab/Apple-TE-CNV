@@ -1,4 +1,13 @@
 #!/usr/bin/env python3
+"""
+Prepare the per-sample inputs for REPdenovo.
+
+From a sample sheet, writes one REPdenovo configuration file and one reads
+list per sample, and a jobs.tsv that an HTCondor queue can consume to run
+them in parallel.
+
+Run with --help for the sample sheet columns and the output paths.
+"""
 import argparse
 import csv
 import os
