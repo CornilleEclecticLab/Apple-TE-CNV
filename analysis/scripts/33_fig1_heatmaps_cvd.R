@@ -11,11 +11,17 @@
 suppressPackageStartupMessages({
   library(data.table); library(dplyr); library(stringr); library(pheatmap); library(grid)
 })
+# Output directory, resolved to an ABSOLUTE path before the setwd() below:
+# this script moves into the data folder, so a relative output path would
+# afterwards be read from there and land one level too high.
+OUT <- normalizePath(Sys.getenv("FIG_OUT",
+                     unset = file.path("..", "revision_finale", "figures_cvd")),
+                     mustWork = FALSE)
+dir.create(OUT, showWarnings = FALSE, recursive = TRUE)
+
 # Directory holding the TE count matrix and the sample list; override with
 # the TE_DATA_DIR environment variable.
 setwd(Sys.getenv("TE_DATA_DIR", unset = file.path("..", "250923_TE-2")))
-OUT <- Sys.getenv("FIG_OUT", unset = file.path("..", "..", "revision_finale", "figures_cvd"))
-dir.create(OUT, showWarnings = FALSE, recursive = TRUE)
 
 ## ---------- palette of the annotation bands ----------
 ## One colour per category, the same one in Figures 1, 2 and 3. Constraints:
